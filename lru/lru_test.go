@@ -9,7 +9,9 @@ func (s String) Len() int {
 }
 
 func TestGet(t *testing.T) {
-	cache := New(int64(10), nil)
+	cache := New(int64(10), func(k string, v Value) {
+		t.Logf("remove %v", k)
+	})
 	cache.Add("testKey1", String("1235"))
 	if _, ok := cache.Get("testKey1"); !ok {
 		t.Logf("cache hit testKey1=1235 failded")
