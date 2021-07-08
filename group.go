@@ -59,6 +59,7 @@ var (
 	groups = make(map[string]*Group)
 )
 
+// NewGroup constructs a group, and save to groups
 func NewGroup(name string, maxBytes int64, getter Getter) *Group {
 	if getter == nil {
 		panic("nil error")
