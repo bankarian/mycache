@@ -1,2 +1,2 @@
 ## MyCache
-Thanks @geektutu
+Thanks, @geektutu
