@@ -6,7 +6,7 @@ import "container/list"
 type Cache struct {
 	maxBytes int64      // max usable bytes
 	bytesCnt int64      // how many bytes are used
-	lru      *list.List // head is the move active element
+	lst      *list.List // head is the move active element
 	locate   map[string]*list.Element
 	onEvict  func(k string, v Value)
 }
@@ -16,7 +16,7 @@ type Value interface {
 	Len() int // how many bytes are used
 }
 
-// entry is lru list's element
+// entry is lst list's element
 type entry struct {
 	k string
 	v Value
@@ -27,7 +27,7 @@ func New(maxBytes int64, onEvict func(string, Value)) *Cache {
 	return &Cache{
 		maxBytes: maxBytes,
 		bytesCnt: 0,
-		lru:      list.New(),
+		lst:      list.New(),
 		locate:   make(map[string]*list.Element),
 		onEvict:  onEvict,
 	}
@@ -35,7 +35,7 @@ func New(maxBytes int64, onEvict func(string, Value)) *Cache {
 
 func (c *Cache) Get(k string) (v Value, ok bool) {
 	if elm, ok := c.locate[k]; ok {
-		c.lru.MoveToFront(elm)
+		c.lst.MoveToFront(elm)
 		kv := elm.Value.(*entry)
 		return kv.v, true
 	}
@@ -43,8 +43,8 @@ func (c *Cache) Get(k string) (v Value, ok bool) {
 }
 
 func (c *Cache) Remove() {
-	if elm := c.lru.Back(); elm != nil {
-		c.lru.Remove(elm)
+	if elm := c.lst.Back(); elm != nil {
+		c.lst.Remove(elm)
 		kv := elm.Value.(*entry)
 		delete(c.locate, kv.k)
 		c.bytesCnt -= int64(len(kv.k)) + int64(kv.v.Len())
@@ -59,12 +59,12 @@ func (c *Cache) Remove() {
 // replace the old value if key exists
 func (c *Cache) Add(k string, v Value) {
 	if elm, ok := c.locate[k]; ok {
-		c.lru.MoveToFront(elm)
+		c.lst.MoveToFront(elm)
 		kv := elm.Value.(*entry)
 		c.bytesCnt += int64(v.Len()) - int64(kv.v.Len())
 		kv.v = v
 	} else {
-		elm := c.lru.PushFront(&entry{k, v})
+		elm := c.lst.PushFront(&entry{k, v})
 		c.locate[k] = elm
 		c.bytesCnt += int64(len(k)) + int64(v.Len())
 	}
@@ -75,5 +75,5 @@ func (c *Cache) Add(k string, v Value) {
 }
 
 func (c *Cache) Len() int {
-	return c.lru.Len()
+	return c.lst.Len()
 }
