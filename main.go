@@ -53,7 +53,7 @@ func startAPI(apiAddr string, myc *Group) {
 func main() {
 	var port int
 	var api bool
-	flag.IntVar(&port, "port", 8088, "MyCache server port")
+	flag.IntVar(&port, "port", 8081, "MyCache server port")
 	flag.BoolVar(&api, "api", false, "Start an api sever?")
 	flag.Parse()
 

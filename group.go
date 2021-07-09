@@ -33,6 +33,8 @@ type Group struct {
 	peers     PeerPicker
 }
 
+// Get get value from cache, if failed then get from peers,
+// if failed then get from db locally
 func (g *Group) Get(k string) (ByteView, error) {
 	if k == "" {
 		return ByteView{}, fmt.Errorf("key is required")
