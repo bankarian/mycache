@@ -18,7 +18,7 @@ func TestHTTPPool(t *testing.T) {
 		}))
 
 	addr := "localhost:9999"
-	peers := NewHTTPPool(addr)
+	peers := NewHTTPPicker(addr)
 	t.Log("mycache is running at", addr)
 
 	http.ListenAndServe(addr, peers)

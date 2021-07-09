@@ -14,8 +14,8 @@ const (
 	defaultReplicas = 50
 )
 
-// HTTPPool implements PeerPicker for a pool of HTTP peers.
-type HTTPPool struct {
+// HTTPPicker implements PeerPicker for a pool of HTTP peers.
+type HTTPPicker struct {
 	self string
 	// prefix of the communication address between nodes,
 	// http://xx.com/_mycache/ serves as the default prefix.
@@ -25,21 +25,21 @@ type HTTPPool struct {
 	httpGetters map[string]*httpGetter // get key by url, eg. "http://localhost:8080"
 }
 
-func NewHTTPPool(self string) *HTTPPool {
-	return &HTTPPool{
+func NewHTTPPicker(self string) *HTTPPicker {
+	return &HTTPPicker{
 		self:     self,
 		basePath: defaultBasePath,
 	}
 }
 
-func (p *HTTPPool) Log(format string, v ...interface{}) {
+func (p *HTTPPicker) Log(format string, v ...interface{}) {
 	log.Printf("[Server %s] %s",
 		p.self, fmt.Sprintf(format, v...))
 }
 
-func (p *HTTPPool) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (p *HTTPPicker) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !strings.HasPrefix(r.URL.Path, p.basePath) {
-		panic("HTTPPool serving unexpected path: " + r.URL.Path)
+		panic("HTTPPicker serving unexpected path: " + r.URL.Path)
 	}
 	p.Log("%s %s", r.Method, r.URL.Path)
 
@@ -73,7 +73,7 @@ func (p *HTTPPool) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // Set sets the pool's list of peers, discards the old ones
-func (p *HTTPPool) Set(peers ...string) {
+func (p *HTTPPicker) Set(peers ...string) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -85,7 +85,7 @@ func (p *HTTPPool) Set(peers ...string) {
 	}
 }
 
-func (p *HTTPPool) Pick(key string) (Peer, bool) {
+func (p *HTTPPicker) Pick(key string) (Peer, bool) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -96,4 +96,4 @@ func (p *HTTPPool) Pick(key string) (Peer, bool) {
 	return nil, false
 }
 
-var _ PeerPicker = (*HTTPPool)(nil)
+var _ PeerPicker = (*HTTPPicker)(nil)
