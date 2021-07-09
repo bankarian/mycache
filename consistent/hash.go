@@ -48,7 +48,7 @@ func (m *Map) Add(keys ...string) {
 
 // Locate gets the closest node's key, return "" if not found
 func (m *Map) Locate(k string) string {
-	log.Println("[locate]")
+	log.Println("[locate] k=", k)
 	if len(k) == 0 {
 		return ""
 	}
