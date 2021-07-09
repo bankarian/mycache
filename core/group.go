@@ -50,6 +50,7 @@ func (g *Group) Get(k string) (ByteView, error) {
 // load get from peers first, if failed, then go for local db
 func (g *Group) load(k string) (v ByteView, err error) {
 	if g.peers != nil {
+		log.Println("[MyCache] try to load from peer")
 		if peer, ok := g.peers.Pick(k); ok {
 			if v, err = g.getFromPeer(peer, k); err == nil {
 				return v, nil
@@ -76,7 +77,6 @@ func (g *Group) RegisterPeers(peers PeerPicker) {
 	if g.peers != nil {
 		panic("[RegisterPeers] called more than once")
 	}
-	log.Println("[RegisterPeers] %v", peers)
 	g.peers = peers
 }
 
