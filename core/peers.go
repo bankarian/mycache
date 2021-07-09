@@ -1,4 +1,4 @@
-package mycache
+package core
 
 // PeerPicker peeks a peer by key
 type PeerPicker interface {

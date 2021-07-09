@@ -1,4 +1,4 @@
-package mycache
+package core
 
 // ByteView is read-only view of bytes, who implements Value
 type ByteView struct {

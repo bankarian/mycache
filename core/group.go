@@ -1,5 +1,5 @@
 // Package mycache is concurrent cache for single machine
-package mycache
+package core
 
 import (
 	"fmt"

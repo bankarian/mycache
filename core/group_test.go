@@ -1,4 +1,4 @@
-package mycache
+package core
 
 import (
 	"fmt"
