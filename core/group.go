@@ -76,6 +76,7 @@ func (g *Group) RegisterPeers(peers PeerPicker) {
 	if g.peers != nil {
 		panic("[RegisterPeers] called more than once")
 	}
+	log.Println("[RegisterPeers] %v", peers)
 	g.peers = peers
 }
 
