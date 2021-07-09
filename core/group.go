@@ -1,4 +1,4 @@
-// Package mycache is concurrent cache for single machine
+// Package core is concurrent cache for single machine
 package core
 
 import (
