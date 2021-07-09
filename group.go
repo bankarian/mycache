@@ -7,6 +7,11 @@ import (
 	"sync"
 )
 
+var (
+	mu     sync.RWMutex
+	groups = make(map[string]*Group)
+)
+
 // Getter loads data for key, which is called
 // when cache is missed
 type Getter interface {
@@ -25,6 +30,7 @@ type Group struct {
 	name      string // group's name
 	getter    Getter // called when cached miss
 	mainCache cache  // cache data
+	peers     PeerPicker
 }
 
 func (g *Group) Get(k string) (ByteView, error) {
@@ -39,10 +45,20 @@ func (g *Group) Get(k string) (ByteView, error) {
 	return g.load(k)
 }
 
-func (g *Group) load(k string) (ByteView, error) {
+// load get from peers first, if failed, then go for local db
+func (g *Group) load(k string) (v ByteView, err error) {
+	if g.peers != nil {
+		if peer, ok := g.peers.Pick(k); ok {
+			if v, err = g.getFromPeer(peer, k); err == nil {
+				return v, nil
+			}
+			log.Println("[MyCache] Failed to get from peer", err)
+		}
+	}
 	return g.getLocally(k)
 }
 
+// getLocally gets data from local db
 func (g *Group) getLocally(k string) (ByteView, error) {
 	byts, err := g.getter.Get(k)
 	if err != nil {
@@ -54,10 +70,21 @@ func (g *Group) getLocally(k string) (ByteView, error) {
 	return v, nil
 }
 
-var (
-	mu     sync.RWMutex
-	groups = make(map[string]*Group)
-)
+func (g *Group) RegisterPeers(peers PeerPicker) {
+	if g.peers != nil {
+		panic("[RegisterPeers] called more than once")
+	}
+	g.peers = peers
+}
+
+// getFromPeer .
+func (g *Group) getFromPeer(peer Peer, key string) (ByteView, error) {
+	byts, err := peer.Get(g.name, key)
+	if err != nil {
+		return ByteView{}, err
+	}
+	return ByteView{bs: byts}, nil
+}
 
 // NewGroup constructs a group, and save to groups
 func NewGroup(name string, maxBytes int64, getter Getter) *Group {

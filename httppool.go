@@ -2,19 +2,27 @@ package mycache
 
 import (
 	"fmt"
+	"github/mycache/consistent"
 	"log"
 	"net/http"
 	"strings"
+	"sync"
 )
 
-const defaultBasePath = "/_mycache/"
+const (
+	defaultBasePath = "/_mycache/"
+	defaultReplicas = 50
+)
 
 // HTTPPool implements PeerPicker for a pool of HTTP peers.
 type HTTPPool struct {
 	self string
 	// prefix of the communication address between nodes,
 	// http://xx.com/_mycache/ serves as the default prefix.
-	basePath string
+	basePath    string
+	mu          sync.Mutex
+	peers       *consistent.Map
+	httpGetters map[string]*httpGetter // get key by url, eg. "http://localhost:8080"
 }
 
 func NewHTTPPool(self string) *HTTPPool {
@@ -62,5 +70,30 @@ func (p *HTTPPool) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
 }
+
+// Set sets the pool's list of peers, discards the old ones
+func (p *HTTPPool) Set(peers ...string) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	p.peers = consistent.New(defaultReplicas, nil)
+	p.peers.Add(peers...)
+	p.httpGetters = make(map[string]*httpGetter, len(peers))
+	for _, peer := range peers {
+		p.httpGetters[peer] = &httpGetter{baseURL: peer + p.basePath}
+	}
+}
+
+func (p *HTTPPool) Pick(key string) (Peer, bool) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	if peer := p.peers.Locate(key); peer != "" && peer != p.self {
+		p.Log("Pick peer %s", peer)
+		return p.httpGetters[peer], true
+	}
+	return nil, false
+}
+
+var _ PeerPicker = (*HTTPPool)(nil)

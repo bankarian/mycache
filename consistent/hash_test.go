@@ -1,4 +1,4 @@
-package consistant
+package consistent
 
 import (
 	"strconv"

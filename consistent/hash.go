@@ -1,4 +1,4 @@
-package consistant
+package consistent
 
 import (
 	"hash/crc32"
@@ -19,7 +19,7 @@ type Map struct {
 	dict     map[int]string // virtual key to real key
 }
 
-// New .
+// New construct a consistent hash, fn can be nil
 func New(replicas int, fn Hash) *Map {
 	m := &Map{
 		hash:     fn,
@@ -32,8 +32,8 @@ func New(replicas int, fn Hash) *Map {
 	return m
 }
 
-// Add given keys, construct real nodes.
-// Each node has replicas virtual nodes
+// Add given keys.
+// Each key has replicas virtual key
 func (m *Map) Add(keys ...string) {
 	for _, key := range keys {
 		for i := 0; i < m.replicas; i++ {
@@ -45,7 +45,7 @@ func (m *Map) Add(keys ...string) {
 	sort.Ints(m.keys)
 }
 
-// Locate gets the closest node's key
+// Locate gets the closest node's key, return "" if not found
 func (m *Map) Locate(k string) string {
 	if len(k) == 0 {
 		return ""
