@@ -89,7 +89,6 @@ func (p *HTTPPicker) Pick(key string) (Peer, bool) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	log.Println("self=", p.self)
 	if peer := p.peers.Locate(key); peer != "" && peer != p.self {
 		p.Log("Pick peer %s", peer)
 		return p.httpGetters[peer], true
