@@ -27,7 +27,7 @@ func createGroup() *core.Group {
 
 // start cache server
 func startCache(addr string, addrs []string, myc *core.Group) {
-	peers := core.NewHTTPPicker(addr)
+	peers := core.NewHTTPPool(addr)
 	peers.Set(addrs...)
 	myc.RegisterPeers(peers)
 	log.Println("mycache is running at", addr)
@@ -47,7 +47,7 @@ func startAPI(apiAddr string, myc *core.Group) {
 			w.Header().Set("Content-Type", "application/octet-stream")
 			w.Write(view.Slice())
 		}))
-	log.Println("frontend server runing at", apiAddr)
+	log.Println("frontend server running at", apiAddr)
 	log.Fatal(http.ListenAndServe(apiAddr[len("http://"):], nil))
 }
 

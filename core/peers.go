@@ -1,6 +1,7 @@
 package core
 
-// PeerPicker peeks a peer by key
+// PeerPicker peeks a peer by key, usually implemented as
+// a peers pool
 type PeerPicker interface {
 	Pick(key string) (peer Peer, ok bool)
 }
