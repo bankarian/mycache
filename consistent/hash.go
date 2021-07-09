@@ -2,6 +2,7 @@ package consistent
 
 import (
 	"hash/crc32"
+	"log"
 	"sort"
 	"strconv"
 )
@@ -47,6 +48,7 @@ func (m *Map) Add(keys ...string) {
 
 // Locate gets the closest node's key, return "" if not found
 func (m *Map) Locate(k string) string {
+	log.Println("[locate]")
 	if len(k) == 0 {
 		return ""
 	}
