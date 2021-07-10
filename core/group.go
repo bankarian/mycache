@@ -3,6 +3,7 @@ package core
 
 import (
 	"fmt"
+	"github/mycache/singleflight"
 	"log"
 	"sync"
 )
@@ -31,6 +32,7 @@ type Group struct {
 	getter    Getter // called when cached miss
 	mainCache cache  // cache data
 	peers     PeerPicker
+	loader    *singleflight.Group
 }
 
 // Get get value from cache, if failed then get from peers,
@@ -49,15 +51,22 @@ func (g *Group) Get(k string) (ByteView, error) {
 
 // load get from peers first, if failed, then go for local db
 func (g *Group) load(k string) (v ByteView, err error) {
-	if g.peers != nil {
-		if peer, ok := g.peers.Pick(k); ok {
-			if v, err = g.getFromPeer(peer, k); err == nil {
-				return v, nil
+	view, err := g.loader.Do(k, func() (interface{}, error) {
+		if g.peers != nil {
+			if peer, ok := g.peers.Pick(k); ok {
+				if v, err = g.getFromPeer(peer, k); err == nil {
+					return v, nil
+				}
+				log.Println("[MyCache] Failed to get from peer", err)
 			}
-			log.Println("[MyCache] Failed to get from peer", err)
 		}
+		return g.getLocally(k)
+	})
+
+	if err != nil {
+		return
 	}
-	return g.getLocally(k)
+	return view.(ByteView), nil
 }
 
 // getLocally gets data from local db
@@ -99,6 +108,7 @@ func NewGroup(name string, maxBytes int64, getter Getter) *Group {
 		name:      name,
 		getter:    getter,
 		mainCache: cache{maxBytes: maxBytes},
+		loader:    &singleflight.Group{},
 	}
 	groups[name] = g
 	return g
