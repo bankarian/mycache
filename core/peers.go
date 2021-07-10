@@ -1,5 +1,7 @@
 package core
 
+import "github/mycache/pb"
+
 // PeerPicker peeks a peer by key, usually implemented as
 // a peers pool
 type PeerPicker interface {
@@ -8,6 +10,6 @@ type PeerPicker interface {
 
 // Peer is a cache node that has many groups
 type Peer interface {
-	// Get looks up key in group
-	Get(group string, key string) ([]byte, error)
+	// Fetch looks up key in group
+	Fetch(in *pb.Request, out *pb.Response) error
 }

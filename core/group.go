@@ -3,6 +3,7 @@ package core
 
 import (
 	"fmt"
+	"github/mycache/pb"
 	"github/mycache/singleflight"
 	"log"
 	"sync"
@@ -89,11 +90,16 @@ func (g *Group) RegisterPeers(peers PeerPicker) {
 
 // getFromPeer .
 func (g *Group) getFromPeer(peer Peer, key string) (ByteView, error) {
-	byts, err := peer.Get(g.name, key)
+	req := &pb.Request{
+		Group: g.name,
+		Key:   key,
+	}
+	res := &pb.Response{}
+	err := peer.Fetch(req, res)
 	if err != nil {
 		return ByteView{}, err
 	}
-	return ByteView{bs: byts}, nil
+	return ByteView{bs: res.Value}, nil
 }
 
 // NewGroup constructs a group, and save to groups
