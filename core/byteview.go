@@ -10,7 +10,7 @@ func (v ByteView) Len() int {
 	return len(v.bs)
 }
 
-func (v *ByteView) Slice() []byte {
+func (v *ByteView) ByteSlice() []byte {
 	return clone(v.bs)
 }
 

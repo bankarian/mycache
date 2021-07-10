@@ -2,7 +2,9 @@ package core
 
 import (
 	"fmt"
+	"github.com/golang/protobuf/proto"
 	"github/mycache/consistent"
+	"github/mycache/pb"
 	"log"
 	"net/http"
 	"strings"
@@ -65,11 +67,13 @@ func (p *HTTPPool) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/octet-stream")
-	if _, err := w.Write(view.Slice()); err != nil {
+	byts, err := proto.Marshal(&pb.Response{Value: view.ByteSlice()})
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.Write(byts)
 }
 
 // Set sets the pool's list of peers(url), discards the old ones

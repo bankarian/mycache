@@ -45,7 +45,7 @@ func startAPI(apiAddr string, myc *core.Group) {
 				return
 			}
 			w.Header().Set("Content-Type", "application/octet-stream")
-			w.Write(view.Slice())
+			w.Write(view.ByteSlice())
 		}))
 	log.Println("frontend server running at", apiAddr)
 	log.Fatal(http.ListenAndServe(apiAddr[len("http://"):], nil))

@@ -57,7 +57,7 @@ func (g *Group) load(k string) (v ByteView, err error) {
 				if v, err = g.getFromPeer(peer, k); err == nil {
 					return v, nil
 				}
-				log.Println("[MyCache] Failed to get from peer", err)
+				log.Println("[MyCache] Failed to get from peer:", err)
 			}
 		}
 		return g.getLocally(k)
