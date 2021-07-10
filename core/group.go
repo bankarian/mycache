@@ -14,13 +14,12 @@ var (
 	groups = make(map[string]*Group)
 )
 
-// Getter loads data for key, which is called
-// when cache is missed
+// Getter gets the value identified by key
 type Getter interface {
 	Get(k string) ([]byte, error) // Get key's data, from datasource
 }
 
-// GetterFunc is implementation of Getter
+// GetterFunc implements Getter with a function
 type GetterFunc func(k string) ([]byte, error)
 
 func (f GetterFunc) Get(k string) ([]byte, error) {
@@ -30,10 +29,13 @@ func (f GetterFunc) Get(k string) ([]byte, error) {
 // Group is a cache namespace
 type Group struct {
 	name      string // group's name
-	getter    Getter // called when cached miss
+	getter    Getter // called when all caches are missed
 	mainCache cache  // cache data
 	peers     PeerPicker
-	loader    *singleflight.Group
+
+	// loader ensures each key is only fetched once,
+	// regardless of the number of concurrent callers.
+	loader *singleflight.Group
 }
 
 // Get get value from cache, if failed then get from peers,
@@ -49,7 +51,8 @@ func (g *Group) Get(k string) (ByteView, error) {
 	return g.load(k)
 }
 
-// load get from peers first, if failed, then go for local db
+// load loads k either by sending it to a peer or
+// invoking getter locally
 func (g *Group) load(k string) (v ByteView, err error) {
 	view, err := g.loader.Do(k, func() (interface{}, error) {
 		if g.peers != nil {
@@ -69,7 +72,7 @@ func (g *Group) load(k string) (v ByteView, err error) {
 	return view.(ByteView), nil
 }
 
-// getLocally gets data from local db
+// getLocally gets value identified by k from local db
 func (g *Group) getLocally(k string) (ByteView, error) {
 	byts, err := g.getter.Get(k)
 	if err != nil {
@@ -102,7 +105,7 @@ func (g *Group) getFromPeer(peer Peer, key string) (ByteView, error) {
 	return ByteView{bs: res.Value}, nil
 }
 
-// NewGroup constructs a group, and save to groups
+// NewGroup creates a group, and save to groups
 func NewGroup(name string, maxBytes int64, getter Getter) *Group {
 	if getter == nil {
 		panic("nil error")

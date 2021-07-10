@@ -5,7 +5,8 @@ import (
 	"sync"
 )
 
-// cache is a wrapper of lru to ensure thread safety
+// cache is a wrapper around an *lru.Cache that adds synchronization,
+// values should always read as ByteView
 type cache struct {
 	mu       sync.Mutex
 	lru      *lru.Cache
