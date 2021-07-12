@@ -6,7 +6,7 @@ import "container/list"
 type Cache struct {
 	maxBytes int64      // max usable bytes
 	bytesCnt int64      // how many bytes are used
-	lst      *list.List // head is the move active element
+	lst      *list.List // head is the most active element
 	locate   map[string]*list.Element
 	onEvict  func(k string, v Value)
 }
